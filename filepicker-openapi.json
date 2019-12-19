@@ -1,0 +1,16 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "version": "v1",
+        "title": "FilePicker",
+        "description": "A simple, file storage API.",
+        "termsOfService": "https:\/\/www.filepicker.io\/termsofservice\/"
+    },
+    "servers": [
+        "httpswww.filepicker.io\/api\/\/api"
+    ],
+    "paths": [],
+    "components": {
+        "schemas": []
+    }
+}

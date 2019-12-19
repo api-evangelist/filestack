@@ -1,0 +1,165 @@
+{
+    "name": "Filestack",
+    "description": "100,000+ applications utilize Filestack???s technology to leverage the world???s best file uploading speed, reliability and overall user experience.",
+    "image": "http:\/\/kinlane-productions.s3.amazonaws.com\/screen-capture-api\/1261-filestack.jpg",
+    "tags": [
+        "aggregation",
+        "api provider",
+        "cloud",
+        "file storage",
+        "files",
+        "have api",
+        "javascript",
+        "storage",
+        "target",
+        "uploads",
+        "webhook implementations"
+    ],
+    "created": "2019-12-19",
+    "modified": "2019-12-19",
+    "url": "https:\/\/raw.githubusercontent.com\/api-evangelist\/filestack\/master\/apis.json",
+    "specificationVersion": "0.14",
+    "apis": [
+        {
+            "name": "FilePicker",
+            "description": null,
+            "image": "http:\/\/kinlane-productions.s3.amazonaws.com\/screen-capture-api\/1261-filestack.jpg",
+            "humanURL": "https:\/\/www.filestack.com",
+            "baseURL": "",
+            "tags": [],
+            "properties": [
+                {
+                    "type": "x-openapi",
+                    "url": "https:\/\/raw.githubusercontent.com\/api-evangelist\/1forge\/master\/filepicker-openapi.json"
+                },
+                {
+                    "type": "x-postman-collecction",
+                    "url": "https:\/\/raw.githubusercontent.com\/api-evangelist\/1forge\/master\/filepicker-postman-collection.json"
+                }
+            ]
+        }
+    ],
+    "include": [],
+    "x-common": [
+        {
+            "type": "Application Management",
+            "url": "https:\/\/developers.filepicker.io\/apps\/AWgrH34upQryUoYQAclcwz\/details"
+        },
+        {
+            "type": "Base",
+            "url": "http:\/\/api.filepicker.io\/"
+        },
+        {
+            "type": "Blog",
+            "url": "https:\/\/blog.filestack.com\/"
+        },
+        {
+            "type": "Blog RSS",
+            "url": "http:\/\/blog.filepicker.io\/rss"
+        },
+        {
+            "type": "Branding",
+            "url": "https:\/\/developers.filepicker.io\/apps\/AWgrH34upQryUoYQAclcwz\/customize\/logo"
+        },
+        {
+            "type": "Crunchbase",
+            "url": "https:\/\/crunchbase.com\/organization\/ink-mobility"
+        },
+        {
+            "type": "Developers",
+            "url": "https:\/\/developers.filepicker.io\/"
+        },
+        {
+            "type": "Documentation",
+            "url": "https:\/\/developers.filepicker.io\/docs\/"
+        },
+        {
+            "type": "Email",
+            "url": "hello@filestack.com"
+        },
+        {
+            "type": "Email",
+            "url": "ron@filestack.com"
+        },
+        {
+            "type": "Email",
+            "url": "privacy@filestack.com"
+        },
+        {
+            "type": "Email",
+            "url": "sales@filestack.com"
+        },
+        {
+            "type": "Email",
+            "url": "support@Filestack.com"
+        },
+        {
+            "type": "Email",
+            "url": "legalnotice@Filestack.com"
+        },
+        {
+            "type": "Email",
+            "url": "contact@filepicker.io"
+        },
+        {
+            "type": "Embeddable",
+            "url": "https:\/\/developers.filepicker.io\/docs\/web\/widgets\/"
+        },
+        {
+            "type": "FAQ",
+            "url": "https:\/\/www.filepicker.io\/faq\/"
+        },
+        {
+            "type": "Github",
+            "url": "https:\/\/github.com\/Filepicker"
+        },
+        {
+            "type": "PHP Library",
+            "url": "https:\/\/github.com\/Ink\/filepicker-cakephp"
+        },
+        {
+            "type": "Pricing",
+            "url": "https:\/\/www.filepicker.io\/pricing\/"
+        },
+        {
+            "type": "Privacy",
+            "url": "https:\/\/www.filepicker.io\/privacy\/"
+        },
+        {
+            "type": "Python Library",
+            "url": "https:\/\/github.com\/Ink\/django-filepicker"
+        },
+        {
+            "type": "Ruby Library",
+            "url": "https:\/\/github.com\/carrierwaveuploader\/carrierwave"
+        },
+        {
+            "type": "Registration",
+            "url": "https:\/\/developers.filepicker.io\/register\/"
+        },
+        {
+            "type": "Stack Overflow",
+            "url": "http:\/\/stackoverflow.com\/questions\/tagged\/ink-file-picker?sort=newest&pagesize=50"
+        },
+        {
+            "type": "Terms of Service",
+            "url": "https:\/\/www.filepicker.io\/termsofservice\/"
+        },
+        {
+            "type": "Twitter",
+            "url": "https:\/\/twitter.com\/Filestack"
+        },
+        {
+            "type": "Twitter",
+            "url": "https:\/\/twitter.com\/FilePicker"
+        },
+        {
+            "type": "Webhooks",
+            "url": "https:\/\/www.filestack.com\/docs\/api\/webhooks\/"
+        },
+        {
+            "type": "Website",
+            "url": "https:\/\/www.filestack.com"
+        }
+    ]
+}

@@ -1,0 +1,583 @@
+asyncapi: '2.6.0'
+info:
+  title: Filestack Webhooks API
+  version: '1.0.0'
+  description: |
+    AsyncAPI specification for Filestack's webhook surface. Filestack delivers
+    HTTP POST callbacks to a subscriber URL whenever a tracked event occurs in
+    the file upload, processing, transformation, or workflow pipeline.
+
+    Events are derived from Filestack's public documentation at
+    https://www.filestack.com/docs/api/webhooks/ and the Video and Audio
+    Processing API at https://www.filestack.com/docs/api/video_processing/.
+  contact:
+    name: Filestack Support
+    url: https://www.filestack.com/contact/
+    email: support@filestack.com
+  license:
+    name: Proprietary
+    url: https://www.filestack.com/legal/terms-and-conditions/
+externalDocs:
+  description: Filestack Webhooks Documentation
+  url: https://www.filestack.com/docs/api/webhooks/
+defaultContentType: application/json
+tags:
+  - name: filestack
+    description: Filestack file upload, processing, and workflow platform.
+  - name: webhooks
+    description: Asynchronous HTTP callbacks delivered to a subscriber URL.
+  - name: file-upload
+    description: File upload lifecycle events.
+  - name: processing
+    description: File processing and transformation events.
+  - name: video-audio
+    description: Video and audio transcoding callbacks.
+  - name: workflows
+    description: Filestack Workflow run callbacks.
+servers:
+  subscriber:
+    url: '{subscriberUrl}'
+    protocol: https
+    description: |
+      Customer-provided HTTPS endpoint registered in the Filestack Developer
+      Portal. Filestack POSTs JSON event payloads to this URL.
+    variables:
+      subscriberUrl:
+        description: Fully qualified subscriber callback URL.
+        default: https://example.com/filestack/webhook
+channels:
+  fp.upload:
+    description: |
+      Fired when a file is successfully uploaded to Filestack-managed storage.
+    subscribe:
+      operationId: onFileUploaded
+      summary: File upload completed.
+      description: |
+        Subscriber receives an `fp.upload` event after Filestack persists an
+        uploaded file to its managed storage container.
+      message:
+        $ref: '#/components/messages/UploadEvent'
+  fp.converse:
+    description: |
+      Fired when an image or document conversion task finishes.
+    subscribe:
+      operationId: onFileConverted
+      summary: Image or document conversion completed.
+      description: |
+        Subscriber receives an `fp.converse` event after Filestack finishes an
+        image or document conversion task and the resulting asset is available.
+      message:
+        $ref: '#/components/messages/ConverseEvent'
+  fp.overwrite:
+    description: |
+      Fired when a stored file is overwritten with new bytes.
+    subscribe:
+      operationId: onFileOverwritten
+      summary: File overwrite completed.
+      description: |
+        Subscriber receives an `fp.overwrite` event after the bytes backing an
+        existing Filestack handle are replaced.
+      message:
+        $ref: '#/components/messages/OverwriteEvent'
+  fp.delete:
+    description: |
+      Fired when a stored file is deleted.
+    subscribe:
+      operationId: onFileDeleted
+      summary: File delete completed.
+      description: |
+        Subscriber receives an `fp.delete` event after a stored file is removed
+        from Filestack-managed storage.
+      message:
+        $ref: '#/components/messages/DeleteEvent'
+  fs.workflow:
+    description: |
+      Fired when a Filestack Workflow run finishes (including tasks such as
+      virus detection, image tagging, SFW detection, OCR, and others
+      configured in the workflow).
+    subscribe:
+      operationId: onWorkflowFinished
+      summary: Workflow run finished.
+      description: |
+        Subscriber receives an `fs.workflow` event when a Filestack Workflow
+        run reaches a terminal status. The payload includes per-task results
+        for each step configured in the workflow.
+      message:
+        $ref: '#/components/messages/WorkflowEvent'
+  video_audio_conversion:
+    description: |
+      Fired when an asynchronous video or audio transcoding job changes
+      state. The `status` field carries one of `completed`, `pending`, or
+      `failed`. Filestack does not emit distinct event names per media type
+      or per outcome; subscribers should branch on `status` to differentiate
+      success from failure.
+    subscribe:
+      operationId: onVideoAudioConversion
+      summary: Video or audio transcoding status update.
+      description: |
+        Subscriber receives a callback when a video or audio transcoding job
+        changes state. Inspect the `status` field to distinguish `completed`,
+        `pending`, and `failed` outcomes.
+      message:
+        $ref: '#/components/messages/VideoAudioConversionEvent'
+components:
+  messages:
+    UploadEvent:
+      name: UploadEvent
+      title: fp.upload
+      summary: File upload completed.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/UploadPayload'
+    ConverseEvent:
+      name: ConverseEvent
+      title: fp.converse
+      summary: Image or document conversion completed.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ConversePayload'
+    OverwriteEvent:
+      name: OverwriteEvent
+      title: fp.overwrite
+      summary: File overwrite completed.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/OverwritePayload'
+    DeleteEvent:
+      name: DeleteEvent
+      title: fp.delete
+      summary: File delete completed.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/DeletePayload'
+    WorkflowEvent:
+      name: WorkflowEvent
+      title: fs.workflow
+      summary: Workflow run finished.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/WorkflowPayload'
+    VideoAudioConversionEvent:
+      name: VideoAudioConversionEvent
+      title: Video / Audio Conversion Callback
+      summary: Asynchronous video or audio transcoding status update.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/VideoAudioConversionPayload'
+  schemas:
+    UploadPayload:
+      type: object
+      description: Payload delivered for the `fp.upload` event.
+      required:
+        - id
+        - action
+        - timestamp
+        - text
+      properties:
+        id:
+          type: integer
+          description: Filestack-assigned event identifier.
+          example: 30813791
+        action:
+          type: string
+          description: Event action name.
+          enum:
+            - fp.upload
+        timestamp:
+          type: integer
+          format: int64
+          description: Unix timestamp of the event in seconds.
+          example: 1521733983
+        text:
+          type: object
+          required:
+            - container
+            - url
+            - filename
+            - client
+            - key
+            - type
+            - status
+            - size
+          properties:
+            container:
+              type: string
+              description: Backing storage container that received the file.
+              example: filestack-uploads-persist-production
+            url:
+              type: string
+              format: uri
+              description: CDN URL for the stored file.
+              example: https://cdn.filestackcontent.com/HANDLE
+            filename:
+              type: string
+              description: Original filename supplied by the uploading client.
+            client:
+              type: string
+              description: Upload source (for example `Computer`, `Facebook`, `URL`).
+              example: Computer
+            key:
+              type: string
+              description: Object key inside the storage container.
+            type:
+              type: string
+              description: File MIME type.
+            status:
+              type: string
+              description: Storage status reported by Filestack.
+              example: Stored
+            size:
+              type: integer
+              description: File size in bytes.
+              example: 158584
+    ConversePayload:
+      type: object
+      description: Payload delivered for the `fp.converse` (image/document conversion) event.
+      required:
+        - id
+        - action
+        - timestamp
+        - text
+      properties:
+        id:
+          type: integer
+          example: 30814778
+        action:
+          type: string
+          enum:
+            - fp.converse
+        timestamp:
+          type: integer
+          format: int64
+          example: 1521734642
+        text:
+          type: object
+          required:
+            - url
+            - link
+          properties:
+            url:
+              type: string
+              description: Conversion task path.
+              example: /CONVERSION_TASKS/HANDLE
+            link:
+              type: object
+              required:
+                - url
+                - handle
+                - filename
+                - mimetype
+                - path
+                - provider
+                - size
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  example: https://www.filestackapi.com/api/file/HANDLE
+                handle:
+                  type: string
+                  description: Filestack file handle for the converted asset.
+                filename:
+                  type: string
+                mimetype:
+                  type: string
+                path:
+                  type: string
+                  description: Internal Filestack storage path.
+                provider:
+                  type: string
+                  example: internal_v2
+                size:
+                  type: integer
+                  example: 158584
+    OverwritePayload:
+      type: object
+      description: Payload delivered for the `fp.overwrite` event.
+      required:
+        - id
+        - action
+        - timestamp
+        - text
+      properties:
+        id:
+          type: integer
+          example: 30815340
+        action:
+          type: string
+          enum:
+            - fp.overwrite
+        timestamp:
+          type: integer
+          format: int64
+          example: 1521735062
+        text:
+          type: object
+          required:
+            - mimetype
+            - url
+            - isWriteable
+            - filename
+            - client
+            - size
+          properties:
+            mimetype:
+              type: string
+            url:
+              type: string
+              format: uri
+              example: https://cdn.filestackcontent.com/HANDLE
+            isWriteable:
+              type: boolean
+              description: Whether the underlying storage object remains writeable.
+              example: true
+            filename:
+              type: string
+            client:
+              type: string
+              example: Computer
+            size:
+              type: integer
+              example: 436688
+    DeletePayload:
+      type: object
+      description: Payload delivered for the `fp.delete` event.
+      required:
+        - id
+        - action
+        - timestamp
+        - text
+      properties:
+        id:
+          type: integer
+          example: 30814508
+        action:
+          type: string
+          enum:
+            - fp.delete
+        timestamp:
+          type: integer
+          format: int64
+          example: 1521734463
+        text:
+          type: object
+          required:
+            - url
+          properties:
+            url:
+              type: string
+              format: uri
+              example: https://cdn.filestackcontent.com/HANDLE
+    WorkflowPayload:
+      type: object
+      description: |
+        Payload delivered for the `fs.workflow` event. The `results` map keys
+        are task identifiers produced by the workflow (for example
+        `virus_detection_<timestamp>`, `image_tagging_<timestamp>`,
+        `sfw_<timestamp>`), and the values carry task-specific output under
+        `data`.
+      required:
+        - id
+        - action
+        - timestamp
+        - text
+      properties:
+        id:
+          type: integer
+          example: 61380634
+        action:
+          type: string
+          enum:
+            - fs.workflow
+        timestamp:
+          type: integer
+          format: int64
+          example: 1548214263
+        text:
+          type: object
+          required:
+            - workflow
+            - createdAt
+            - updatedAt
+            - sources
+            - results
+            - status
+          properties:
+            workflow:
+              type: string
+              description: Workflow identifier (UUID).
+              example: 687r07d2-5f84-44a0-b20b-1c29a1deb2ab
+            createdAt:
+              type: string
+              format: date-time
+              example: '2019-01-23T03:30:55.400729934Z'
+            updatedAt:
+              type: string
+              format: date-time
+              example: '2019-01-23T03:30:57.437268735Z'
+            sources:
+              type: array
+              description: Filestack handles of the source files processed by the workflow.
+              items:
+                type: string
+              example:
+                - VJQTvCboRVivWJ2BpKgd
+            results:
+              type: object
+              description: |
+                Per-task results, keyed by task instance identifier. Each
+                value is an object containing a `data` field with
+                task-specific output. The virus detection task, for example,
+                returns `infected` and `infections_list`.
+              additionalProperties:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    additionalProperties: true
+              example:
+                virus_detection_1548213592150:
+                  data:
+                    infected: false
+                    infections_list: []
+            status:
+              type: string
+              description: Terminal status reported for the workflow run.
+              example: Finished
+    VideoAudioConversionPayload:
+      type: object
+      description: |
+        Callback payload delivered by Filestack's video and audio
+        transcoding pipeline. Filestack POSTs this body to the URL
+        registered on the conversion request. The `status` field carries
+        the lifecycle state (`pending`, `completed`, or `failed`).
+      required:
+        - status
+        - timestamp
+        - uuid
+      properties:
+        status:
+          type: string
+          description: Conversion lifecycle state.
+          enum:
+            - pending
+            - completed
+            - failed
+        message:
+          type: string
+          description: Human-readable status message.
+          example: Done
+        uuid:
+          type: string
+          description: Unique conversion job identifier used to correlate the callback with the originating request.
+          example: 5c0f33cc9c464e16592b7a01f6f8f5c1
+        timestamp:
+          type: string
+          description: Unix timestamp (seconds) of the callback as a string.
+          example: '1522786635'
+        data:
+          type: object
+          description: Output asset locations. Populated when `status` is `completed`.
+          properties:
+            url:
+              type: string
+              format: uri
+              description: CDN URL of the transcoded asset.
+              example: https://cdn.filestackcontent.com/HANDLE
+            thumb:
+              type: string
+              format: uri
+              description: Default thumbnail URL.
+            thumb100x100:
+              type: string
+              format: uri
+              description: 100x100 cropped thumbnail.
+            thumb200x200:
+              type: string
+              format: uri
+              description: 200x200 cropped thumbnail.
+            thumb300x300:
+              type: string
+              format: uri
+              description: 300x300 cropped thumbnail.
+        metadata:
+          type: object
+          description: Source and result media metadata.
+          properties:
+            result:
+              type: object
+              description: Metadata of the transcoded output.
+              properties:
+                duration:
+                  type: integer
+                  description: Duration in milliseconds.
+                  example: 5615
+                audio_bitrate:
+                  type: integer
+                  example: 128
+                audio_channels:
+                  type: integer
+                  example: 1
+                audio_codec:
+                  type: string
+                  example: aac
+                audio_sample_rate:
+                  type: integer
+                  example: 44100
+                video_bitrate:
+                  type: integer
+                  example: 81
+                video_codec:
+                  type: string
+                  example: h264
+                height:
+                  type: integer
+                  example: 260
+                width:
+                  type: integer
+                  example: 350
+                fps:
+                  type: integer
+                  example: 30
+                file_size:
+                  type: integer
+                  example: 150791
+                mime_type:
+                  type: string
+                  example: video/mp4
+                extname:
+                  type: string
+                  example: .mp4
+                encoding_progress:
+                  type: integer
+                  description: Encoding completion percentage.
+                  example: 100
+                created_at:
+                  type: string
+                  description: Timestamp the output asset was produced.
+                  example: '2018/04/03 20:15:50 +0000'
+            source:
+              type: object
+              description: Metadata of the original source asset.
+              properties:
+                duration:
+                  type: integer
+                  example: 5568
+                audio_bitrate:
+                  type: integer
+                  example: 83
+                audio_channels:
+                  type: integer
+                  example: 1
+                audio_sample_rate:
+                  type: integer
+                  example: 48000
+                video_bitrate:
+                  type: integer
+                  example: 465
+                height:
+                  type: integer
+                  example: 320
+                width:
+                  type: integer
+                  example: 560

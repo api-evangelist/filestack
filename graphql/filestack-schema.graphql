@@ -1,0 +1,931 @@
+"""
+Filestack GraphQL Schema
+Conceptual schema representing the Filestack file upload, transformation,
+storage, and CDN delivery API surface.
+Source: https://www.filestack.com/docs/api/
+"""
+
+# ─── Scalars ────────────────────────────────────────────────────────────────
+
+scalar DateTime
+scalar JSON
+scalar Upload
+
+# ─── Enumerations ───────────────────────────────────────────────────────────
+
+enum FileStatusEnum {
+  PENDING
+  PROCESSING
+  STORED
+  FAILED
+  DELETED
+}
+
+enum StorageProviderEnum {
+  S3
+  GCS
+  AZURE
+  BACKBLAZE
+  DROPBOX
+  BOX
+  FILESTACK
+}
+
+enum ImageFormatEnum {
+  JPG
+  JPEG
+  PNG
+  GIF
+  WEBP
+  AVIF
+  TIFF
+  BMP
+  PDF
+  SVG
+}
+
+enum VideoFormatEnum {
+  MP4
+  WEBM
+  OGG
+  AVI
+  MOV
+  MKV
+  FLV
+}
+
+enum DocumentFormatEnum {
+  PDF
+  DOCX
+  PPTX
+  XLSX
+  ODT
+  HTML
+  TXT
+}
+
+enum RotateDirectionEnum {
+  CW
+  CCW
+  EXIF
+}
+
+enum WebhookEventTypeEnum {
+  UPLOAD
+  TRANSFORM
+  STORE
+  DELETE
+  ERROR
+}
+
+enum FitModeEnum {
+  CLIP
+  CROP
+  SCALE
+  MAX
+}
+
+enum AlignEnum {
+  CENTER
+  TOP
+  BOTTOM
+  LEFT
+  RIGHT
+  FACES
+}
+
+enum SecurityCallEnum {
+  PICK
+  READ
+  STAT
+  WRITE
+  WRITE_URL
+  STORE
+  CONVERT
+  REMOVE
+  EXIF
+  ANIMATE
+  AUDIO_CONVERT
+  VIDEO_CONVERT
+  REMOVE_BACKGROUND
+  SFW
+  TAGS
+  OCR
+  ZIP
+  FALLBACK
+}
+
+# ─── Handle & Identity ──────────────────────────────────────────────────────
+
+"""A unique Filestack file handle (e.g. ADNupXAVS5CqBIQbLbEy)"""
+type Handle {
+  value: String!
+  url: String!
+  cdnUrl: String!
+}
+
+"""Full file handle with metadata"""
+type FileHandle {
+  handle: String!
+  url: String!
+  cdnUrl: String!
+  filename: String
+  size: Int
+  mimeType: String
+  status: FileStatusEnum
+  createdAt: DateTime
+}
+
+# ─── File Core ───────────────────────────────────────────────────────────────
+
+"""Top-level file object returned by Filestack"""
+type File {
+  handle: String!
+  url: String!
+  details: FileDetails
+  status: FileStatus
+  name: FileName
+  size: FileSize
+  mimeType: FileMimeType
+  fileUrl: FileURL
+  cdnUrl: CDNUrl
+  security: Security
+  store: StoreDetails
+  metadata: JSON
+}
+
+"""Detailed metadata for a stored file"""
+type FileDetails {
+  handle: String!
+  url: String!
+  filename: String!
+  size: Int!
+  mimeType: String!
+  width: Int
+  height: Int
+  duration: Float
+  pages: Int
+  hasAudio: Boolean
+  hasVideo: Boolean
+  isImage: Boolean
+  isDocument: Boolean
+  isVideo: Boolean
+  isAudio: Boolean
+  uploadedAt: DateTime!
+  storedAt: DateTime
+  expiresAt: DateTime
+  md5: String
+  sha256: String
+  storageProvider: StorageProviderEnum
+  storagePath: String
+  container: String
+  region: String
+  access: String
+  metadata: JSON
+}
+
+"""Lifecycle status of a file"""
+type FileStatus {
+  handle: String!
+  status: FileStatusEnum!
+  progress: Int
+  message: String
+  updatedAt: DateTime
+}
+
+"""File name information"""
+type FileName {
+  original: String!
+  sanitized: String!
+  base: String!
+  extension: String
+}
+
+"""File size information"""
+type FileSize {
+  bytes: Int!
+  kilobytes: Float!
+  megabytes: Float!
+  gigabytes: Float!
+  humanReadable: String!
+}
+
+"""MIME type information for a file"""
+type FileMimeType {
+  value: String!
+  type: String!
+  subtype: String!
+  isImage: Boolean!
+  isVideo: Boolean!
+  isAudio: Boolean!
+  isDocument: Boolean!
+  isArchive: Boolean!
+}
+
+"""Public URL for a file"""
+type FileURL {
+  raw: String!
+  cdn: String!
+  signed: String
+  expiresAt: DateTime
+}
+
+"""CDN-optimized URL for a file"""
+type CDNUrl {
+  url: String!
+  handle: String!
+  transformation: String
+  policy: String
+  signature: String
+}
+
+# ─── Security ────────────────────────────────────────────────────────────────
+
+"""Filestack API key"""
+type APIKey {
+  value: String!
+  label: String
+  createdAt: DateTime
+  lastUsedAt: DateTime
+}
+
+"""Bearer / session token"""
+type Token {
+  value: String!
+  type: String!
+  expiresAt: DateTime
+}
+
+"""Security policy + signature pair for signed URLs"""
+type Security {
+  policy: SecurityPolicy!
+  signature: SecuritySignature!
+  encodedPolicy: String!
+  signedUrl: String
+}
+
+"""Filestack security policy (base64-encoded JSON)"""
+type SecurityPolicy {
+  handle: String
+  url: String
+  maxSize: Int
+  minSize: Int
+  path: String
+  container: String
+  expiry: Int!
+  call: [SecurityCallEnum!]
+  raw: String!
+}
+
+"""HMAC-SHA256 signature for a security policy"""
+type SecuritySignature {
+  value: String!
+  algorithm: String!
+}
+
+"""Options for building a security policy"""
+type PolicyOptions {
+  expiry: Int!
+  call: [SecurityCallEnum!]!
+  handle: String
+  url: String
+  maxSize: Int
+  minSize: Int
+  path: String
+  container: String
+}
+
+# ─── Storage ─────────────────────────────────────────────────────────────────
+
+"""Generic store result"""
+type Store {
+  handle: String!
+  url: String!
+  provider: StorageProviderEnum!
+  details: StoreDetails!
+}
+
+"""Details about where a file is stored"""
+type StoreDetails {
+  provider: StorageProviderEnum!
+  container: String!
+  path: String!
+  region: String
+  access: String
+  base64Decode: Boolean
+  workflowIds: [String!]
+}
+
+"""Abstract storage provider interface"""
+interface StorageProvider {
+  name: StorageProviderEnum!
+  container: String!
+  path: String!
+  region: String
+  access: String
+}
+
+"""Amazon S3 storage configuration"""
+type S3Store implements StorageProvider {
+  name: StorageProviderEnum!
+  container: String!
+  path: String!
+  region: String
+  access: String
+  bucketName: String!
+  storageClass: String
+  serverSideEncryption: String
+  websiteRedirectLocation: String
+}
+
+"""Google Cloud Storage configuration"""
+type GCSStore implements StorageProvider {
+  name: StorageProviderEnum!
+  container: String!
+  path: String!
+  region: String
+  access: String
+  projectId: String
+}
+
+"""Azure Blob Storage configuration"""
+type AzureStore implements StorageProvider {
+  name: StorageProviderEnum!
+  container: String!
+  path: String!
+  region: String
+  access: String
+  accountName: String
+}
+
+"""Backblaze B2 storage configuration"""
+type BackblazeStore implements StorageProvider {
+  name: StorageProviderEnum!
+  container: String!
+  path: String!
+  region: String
+  access: String
+  accountId: String
+}
+
+"""Dropbox storage configuration"""
+type DropboxStore implements StorageProvider {
+  name: StorageProviderEnum!
+  container: String!
+  path: String!
+  region: String
+  access: String
+  dropboxPath: String
+}
+
+"""Box storage configuration"""
+type BoxStore implements StorageProvider {
+  name: StorageProviderEnum!
+  container: String!
+  path: String!
+  region: String
+  access: String
+  folderId: String
+}
+
+"""Options passed when storing a file"""
+type StoreOptions {
+  filename: String
+  location: StorageProviderEnum
+  container: String
+  path: String
+  region: String
+  access: String
+  base64Decode: Boolean
+  workflowIds: [String!]
+}
+
+# ─── CDN ─────────────────────────────────────────────────────────────────────
+
+"""CDN configuration and delivery details"""
+type CDN {
+  handle: String!
+  baseUrl: String!
+  details: CDNDetails!
+}
+
+"""CDN delivery details"""
+type CDNDetails {
+  handle: String!
+  domain: String!
+  protocol: String!
+  cacheControl: String
+  cdnUrl: String!
+  transformationUrl: String
+  security: Security
+  region: String
+  edgeNodes: [String!]
+}
+
+# ─── Transformations ─────────────────────────────────────────────────────────
+
+"""A single transformation task applied to a file"""
+type Transform {
+  handle: String!
+  originalHandle: String!
+  url: String!
+  details: TransformDetails!
+}
+
+"""Details of an applied transformation"""
+type TransformDetails {
+  originalHandle: String!
+  transformedHandle: String!
+  url: String!
+  pipeline: String!
+  appliedAt: DateTime!
+  processingTime: Int
+  outputFormat: String
+  outputSize: Int
+}
+
+"""Image-specific transformation"""
+type ImageTransform {
+  handle: String!
+  url: String!
+  resize: Resize
+  crop: Crop
+  rotate: Rotate
+  flip: Flip
+  flop: Flop
+  grayscale: Grayscale
+  blur: Blur
+  sharpen: Sharpen
+  overlay: Overlay
+  watermark: Watermark
+  format: Format
+  autoCompress: AutoCompress
+  autoFormat: AutoFormat
+  quality: Quality
+  progressive: Progressive
+}
+
+"""Document-specific transformation"""
+type DocumentTransform {
+  handle: String!
+  url: String!
+  format: DocumentFormatEnum
+  pages: String
+  compress: Boolean
+  density: Int
+}
+
+"""Video-specific transformation"""
+type VideoTransform {
+  handle: String!
+  url: String!
+  format: VideoFormatEnum
+  width: Int
+  height: Int
+  fps: Int
+  bitrate: Int
+  audioSampleRate: Int
+  audioBitrate: Int
+  clip: VideoClip
+  watermark: Watermark
+}
+
+"""Video clip parameters"""
+type VideoClip {
+  startTime: Float
+  endTime: Float
+  duration: Float
+}
+
+"""Full transformation pipeline entry"""
+type Transformation {
+  id: String!
+  handle: String!
+  pipeline: [TransformationDetails!]!
+  outputUrl: String!
+  createdAt: DateTime!
+}
+
+"""Individual step in a transformation pipeline"""
+type TransformationDetails {
+  step: Int!
+  operation: String!
+  params: JSON
+  outputHandle: String
+  duration: Int
+}
+
+# ─── Image Operations ────────────────────────────────────────────────────────
+
+"""Resize operation parameters"""
+type Resize {
+  width: Int
+  height: Int
+  fit: FitModeEnum
+  align: AlignEnum
+  upscale: Boolean
+}
+
+"""Crop operation parameters"""
+type Crop {
+  x: Int!
+  y: Int!
+  width: Int!
+  height: Int!
+}
+
+"""Rotate operation parameters"""
+type Rotate {
+  deg: Int
+  color: String
+  background: String
+  exif: Boolean
+}
+
+"""Horizontal flip operation"""
+type Flip {
+  enabled: Boolean!
+}
+
+"""Vertical flop (flip along horizontal axis) operation"""
+type Flop {
+  enabled: Boolean!
+}
+
+"""Grayscale conversion"""
+type Grayscale {
+  enabled: Boolean!
+}
+
+"""Gaussian blur parameters"""
+type Blur {
+  amount: Float!
+}
+
+"""Sharpen filter parameters"""
+type Sharpen {
+  amount: Float
+}
+
+"""Image overlay parameters"""
+type Overlay {
+  url: String!
+  position: AlignEnum
+  x: Int
+  y: Int
+  width: Int
+  height: Int
+  opacity: Float
+}
+
+"""Watermark parameters (alias of Overlay for semantic clarity)"""
+type Watermark {
+  url: String!
+  position: AlignEnum
+  x: Int
+  y: Int
+  size: Int
+  opacity: Float
+}
+
+# ─── Output Format Controls ──────────────────────────────────────────────────
+
+"""Output format conversion"""
+type Format {
+  value: ImageFormatEnum!
+}
+
+"""Automatic compression"""
+type AutoCompress {
+  enabled: Boolean!
+}
+
+"""Automatic format selection (e.g. WebP when browser supports it)"""
+type AutoFormat {
+  enabled: Boolean!
+}
+
+"""Output quality level (1–100)"""
+type Quality {
+  value: Int!
+}
+
+"""Progressive JPEG encoding"""
+type Progressive {
+  enabled: Boolean!
+}
+
+# ─── Download ────────────────────────────────────────────────────────────────
+
+"""Download record for a file"""
+type Download {
+  handle: String!
+  url: String!
+  details: DownloadDetails!
+}
+
+"""Download details"""
+type DownloadDetails {
+  handle: String!
+  filename: String!
+  size: Int!
+  mimeType: String!
+  url: String!
+  signed: Boolean!
+  expiresAt: DateTime
+  disposition: String
+}
+
+# ─── Multipart Upload ────────────────────────────────────────────────────────
+
+"""Multipart upload session for large files"""
+type MultipartUpload {
+  uploadId: String!
+  handle: String
+  session: UploadSession!
+  chunks: [UploadChunk!]!
+  totalChunks: Int!
+  uploadedChunks: Int!
+  status: FileStatusEnum!
+  startedAt: DateTime!
+  completedAt: DateTime
+}
+
+"""Individual chunk in a multipart upload"""
+type UploadChunk {
+  chunkNumber: Int!
+  size: Int!
+  offset: Int!
+  uploaded: Boolean!
+  etag: String
+  uploadUrl: String
+}
+
+"""Upload session metadata"""
+type UploadSession {
+  sessionId: String!
+  apiKey: String!
+  region: String!
+  uploadId: String!
+  signature: String!
+  policy: String!
+  location: String!
+  expiresAt: DateTime!
+}
+
+# ─── Picker Configuration ────────────────────────────────────────────────────
+
+"""Configuration for the Filestack file picker UI"""
+type PickerConfig {
+  apiKey: String!
+  accept: [String!]
+  maxFiles: Int
+  minFiles: Int
+  maxSize: Int
+  fromSources: [String!]
+  lang: String
+  storeTo: StoreOptions
+  transformations: JSON
+  uploadInBackground: Boolean
+  disableTransformer: Boolean
+  imageMin: [Int!]
+  imageMax: [Int!]
+  videoResolution: String
+}
+
+# ─── Worker Function ─────────────────────────────────────────────────────────
+
+"""A serverless worker function applied during file processing"""
+type WorkerFunction {
+  id: String!
+  name: String!
+  trigger: String!
+  endpoint: String!
+  headers: JSON
+  enabled: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+# ─── Webhooks ────────────────────────────────────────────────────────────────
+
+"""Webhook subscription for Filestack events"""
+type Webhook {
+  id: String!
+  url: String!
+  events: [WebhookEventTypeEnum!]!
+  secret: String
+  enabled: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""A webhook event payload delivered to a subscriber"""
+type WebhookEvent {
+  id: String!
+  type: WebhookEventTypeEnum!
+  handle: String!
+  timestamp: DateTime!
+  payload: JSON!
+  file: FileDetails
+  status: FileStatusEnum
+  error: String
+}
+
+# ─── Queries ─────────────────────────────────────────────────────────────────
+
+type Query {
+  """Get file metadata by handle"""
+  file(handle: String!): File
+
+  """Get file details by handle"""
+  fileDetails(handle: String!): FileDetails
+
+  """Get file status by handle"""
+  fileStatus(handle: String!): FileStatus
+
+  """Get download info for a file"""
+  download(handle: String!, inline: Boolean): Download
+
+  """Get CDN URL details for a handle"""
+  cdnUrl(handle: String!, transformation: String): CDNUrl
+
+  """Get store details for a file"""
+  storeDetails(handle: String!): StoreDetails
+
+  """Get multipart upload status"""
+  multipartUpload(uploadId: String!): MultipartUpload
+
+  """List webhooks"""
+  webhooks: [Webhook!]!
+
+  """Get a single webhook"""
+  webhook(id: String!): Webhook
+
+  """Get transformation details"""
+  transformation(id: String!): Transformation
+
+  """Get picker configuration"""
+  pickerConfig(apiKey: String!): PickerConfig
+
+  """Get a security object for a given policy"""
+  security(options: PolicyOptionsInput!): Security
+}
+
+# ─── Mutations ───────────────────────────────────────────────────────────────
+
+type Mutation {
+  """Upload a file"""
+  uploadFile(file: Upload!, storeOptions: StoreOptionsInput): File
+
+  """Start a multipart upload session"""
+  startMultipartUpload(filename: String!, mimeType: String!, size: Int!, storeOptions: StoreOptionsInput): MultipartUpload
+
+  """Complete a multipart upload"""
+  completeMultipartUpload(uploadId: String!): File
+
+  """Store a URL as a file in Filestack"""
+  storeUrl(url: String!, storeOptions: StoreOptionsInput): File
+
+  """Delete a file by handle"""
+  deleteFile(handle: String!, security: SecurityInput!): Boolean
+
+  """Apply image transformations"""
+  transformImage(handle: String!, transforms: ImageTransformInput!): Transform
+
+  """Apply document transformations"""
+  transformDocument(handle: String!, transforms: DocumentTransformInput!): Transform
+
+  """Apply video transformations"""
+  transformVideo(handle: String!, transforms: VideoTransformInput!): Transform
+
+  """Create a webhook"""
+  createWebhook(url: String!, events: [WebhookEventTypeEnum!]!, secret: String): Webhook
+
+  """Update a webhook"""
+  updateWebhook(id: String!, url: String, events: [WebhookEventTypeEnum!], enabled: Boolean): Webhook
+
+  """Delete a webhook"""
+  deleteWebhook(id: String!): Boolean
+
+  """Create a worker function"""
+  createWorkerFunction(name: String!, trigger: String!, endpoint: String!, headers: JSON): WorkerFunction
+
+  """Delete a worker function"""
+  deleteWorkerFunction(id: String!): Boolean
+}
+
+# ─── Input Types ─────────────────────────────────────────────────────────────
+
+input StoreOptionsInput {
+  filename: String
+  location: StorageProviderEnum
+  container: String
+  path: String
+  region: String
+  access: String
+  base64Decode: Boolean
+  workflowIds: [String!]
+}
+
+input PolicyOptionsInput {
+  expiry: Int!
+  call: [SecurityCallEnum!]!
+  handle: String
+  url: String
+  maxSize: Int
+  minSize: Int
+  path: String
+  container: String
+}
+
+input SecurityInput {
+  policy: String!
+  signature: String!
+}
+
+input ResizeInput {
+  width: Int
+  height: Int
+  fit: FitModeEnum
+  align: AlignEnum
+  upscale: Boolean
+}
+
+input CropInput {
+  x: Int!
+  y: Int!
+  width: Int!
+  height: Int!
+}
+
+input RotateInput {
+  deg: Int
+  exif: Boolean
+  background: String
+}
+
+input BlurInput {
+  amount: Float!
+}
+
+input SharpenInput {
+  amount: Float
+}
+
+input OverlayInput {
+  url: String!
+  position: AlignEnum
+  x: Int
+  y: Int
+  width: Int
+  height: Int
+  opacity: Float
+}
+
+input WatermarkInput {
+  url: String!
+  position: AlignEnum
+  x: Int
+  y: Int
+  size: Int
+  opacity: Float
+}
+
+input ImageTransformInput {
+  resize: ResizeInput
+  crop: CropInput
+  rotate: RotateInput
+  flip: Boolean
+  flop: Boolean
+  grayscale: Boolean
+  blur: BlurInput
+  sharpen: SharpenInput
+  overlay: OverlayInput
+  watermark: WatermarkInput
+  format: ImageFormatEnum
+  autoCompress: Boolean
+  autoFormat: Boolean
+  quality: Int
+  progressive: Boolean
+}
+
+input DocumentTransformInput {
+  format: DocumentFormatEnum
+  pages: String
+  compress: Boolean
+  density: Int
+}
+
+input VideoTransformInput {
+  format: VideoFormatEnum
+  width: Int
+  height: Int
+  fps: Int
+  bitrate: Int
+  audioSampleRate: Int
+  audioBitrate: Int
+  clipStart: Float
+  clipEnd: Float
+  watermark: WatermarkInput
+}

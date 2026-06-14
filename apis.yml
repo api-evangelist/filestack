@@ -1,36 +1,38 @@
 aid: filestack
 name: Filestack
-description: "Filestack File Uploader & File Upload API"
+description: Filestack File Uploader & File Upload API
 url: https://www.filestack.com
 specificationVersion: '0.20'
 created: '2026-05-28'
 modified: '2026-05-30'
 x-source: public-apis/public-apis
-x-category: "Cloud Storage & File Sharing"
+x-category: Cloud Storage & File Sharing
 x-tier: 3
 x-tier-reason: bulk-registered-from-public-apis
 tags:
-  - Cloud Storage And File Sharing
-  - Public APIs
+- Cloud Storage And File Sharing
+- Public APIs
 apis:
-  - name: Filestack
-    description: "Filestack File Uploader & File Upload API"
-    humanURL: https://www.filestack.com
-    baseURL: https://www.filestack.com
-    tags:
-      - Cloud Storage And File Sharing
-    properties:
-      - type: Documentation
-        url: https://www.filestack.com
-      - type: AsyncAPI
-        url: asyncapi.yml
-        x-version: '2.6.0'
-        x-source: https://www.filestack.com/docs/api/webhooks/
-common:
-  - type: Website
+- name: Filestack
+  description: Filestack File Uploader & File Upload API
+  humanURL: https://www.filestack.com
+  baseURL: https://www.filestack.com
+  tags:
+  - Cloud Storage And File Sharing
+  properties:
+  - type: Documentation
     url: https://www.filestack.com
-  - type: PublicAPIsListing
-    url: https://github.com/public-apis/public-apis
+  - type: AsyncAPI
+    url: asyncapi.yml
+    x-version: 2.6.0
+    x-source: https://www.filestack.com/docs/api/webhooks/
+  - url: graphql/filestack-graphql.md
+    type: GraphQL
+common:
+- type: Website
+  url: https://www.filestack.com
+- type: PublicAPIsListing
+  url: https://github.com/public-apis/public-apis
 maintainers:
-  - FN: Kin Lane
-    email: kin@apievangelist.com
+- FN: Kin Lane
+  email: kin@apievangelist.com

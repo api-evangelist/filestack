@@ -29,6 +29,8 @@ apis:
   - url: graphql/filestack-graphql.md
     type: GraphQL
 common:
+- type: DomainSecurity
+  url: security/filestack-domain-security.yml
 - type: Website
   url: https://www.filestack.com
 - type: PublicAPIsListing

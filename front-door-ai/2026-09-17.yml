@@ -1,0 +1,27 @@
+# Front Door AI Index — filestack — 2026-09-17
+# AI vocabulary counted on the provider's root page. Generated; do not edit.
+# `score` is null unless ownership is `own` — see front_door_ai.py.
+front_door_ai:
+  slug: filestack
+  lexicon_version: '1.0'
+  probed_at: '2026-09-17'
+  host: www.filestack.com
+  final_host: www.filestack.com
+  ownership: own
+  owner: filestack
+  shares_host_with: null
+  inherited_from: null
+  verdict: scored
+  score: 5
+  host_score: 5
+  density: 4.32
+  words: 1157
+  tiers:
+    agentic: 0
+    core: 4
+    model: 1
+  ambiguous: 2
+  top_terms:
+    AI: 4
+    intelligence: 2
+    Claude: 1

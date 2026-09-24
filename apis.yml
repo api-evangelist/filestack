@@ -49,8 +49,6 @@ apis:
     url: asyncapi.yml
     x-version: 2.6.0
     x-source: https://www.filestack.com/docs/api/webhooks/
-  - url: graphql/filestack-graphql.md
-    type: GraphQL
 common:
 - type: DomainSecurity
   url: security/filestack-domain-security.yml

@@ -33,13 +33,12 @@ x-category: Cloud Storage & File Sharing
 x-tier: 3
 x-tier-reason: bulk-registered-from-public-apis
 tags:
-- Cloud Storage And File Sharing
 - Public APIs
+- File Upload
 apis:
 - name: Filestack
   description: Filestack File Uploader & File Upload API
   humanURL: https://www.filestack.com
-  baseURL: https://www.filestack.com
   tags:
   - Cloud Storage And File Sharing
   properties:
@@ -59,3 +58,5 @@ common:
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
+x-tags-removed:
+- Cloud Storage And File Sharing
